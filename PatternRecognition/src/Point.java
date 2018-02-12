@@ -62,7 +62,17 @@ public class Point implements Comparable<Point> {
      * @return the slope between this point and the specified point
      */
     public double slopeTo(Point that) {
-        return 0d;
+        if (that.x == x && that.y == y) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        if (that.x == x) {
+            return Double.POSITIVE_INFINITY;
+        }
+        if (that.y == y) {
+            return +0.0;
+        }
+
+        return (that.y - y) * 1. / (that.x - x);
     }
 
     /**
@@ -78,7 +88,13 @@ public class Point implements Comparable<Point> {
      * argument point
      */
     public int compareTo(Point that) {
-        return 0;
+        if (y < that.y || y == that.y && x < that.x) {
+            return -1;
+        }
+        if (x == that.x && y == that.y) {
+            return 0;
+        }
+        return 1;
     }
 
     /**
@@ -88,7 +104,14 @@ public class Point implements Comparable<Point> {
      * @return the Comparator that defines this ordering on points
      */
     public Comparator<Point> slopeOrder() {
-        return null;
+        return new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                double slope1 = slopeTo(o1);
+                double slope2 = slopeTo(o2);
+                return Double.compare(slope1, slope2);
+            }
+        };
     }
 
 
@@ -129,6 +152,7 @@ public class Point implements Comparable<Point> {
 
         // print and draw the line segments
         FastCollinearPoints collinear = new FastCollinearPoints(points);
+//        BruteCollinearPoints collinear = new BruteCollinearPoints(points);
         for (LineSegment segment : collinear.segments()) {
             StdOut.println(segment);
             segment.draw();
