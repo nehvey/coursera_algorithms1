@@ -3,3 +3,6 @@
 !/PatternRecognition
 /PatternRecognition/*
 !/PatternRecognition/src
+!/Puzzle
+/Puzzle/*
+!/Puzzle/src
