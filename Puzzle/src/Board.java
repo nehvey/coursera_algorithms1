@@ -1,7 +1,11 @@
 import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 public class Board {
 
@@ -15,13 +19,14 @@ public class Board {
 	// (where blocks[i][j] = block in row i, column j)
 	public Board(int[][] blocks) {
 		n = blocks.length;
-		this.blocks = blocks;
+		this.blocks = new int[n][n];
 		goal = new int[n][n];
 		xCoordinates = new int[n * n];
 		yCoordinates = new int[n * n];
 		int j = 0;
 		for (int i = 0; i < n; i++) {
 			for (int k = 0; k < n; k++) {
+				this.blocks[i][k] = blocks[i][k];
 				goal[i][k] = j;
 				xCoordinates[j] = i;
 				yCoordinates[j] = k;
@@ -105,17 +110,47 @@ public class Board {
 
 	// all neighboring boards
 	public Iterable<Board> neighbors() {
-		return () -> new Iterator<Board>() {
-			@Override
-			public boolean hasNext() {
-				return false;
+		List<Board> neighbors = new ArrayList<>();
+		for (int i = 0; i < n; i++) {
+			for (int k = 0; k < n; k++) {
+				final int block = blocks[i][k];
+				if (block == 0) {
+					// up
+					if (i - 1 >= 0) {
+						int[][] blocksCopy = Arrays.stream(blocks).map(int[]::clone).toArray(int[][]::new);
+						final int tmp = blocksCopy[i - 1][k];
+						blocksCopy[i - 1][k] = block;
+						blocksCopy[i][k] = tmp;
+						neighbors.add(new Board(blocksCopy));
+					}
+					// down
+					if (i + 1 < n) {
+						int[][] blocksCopy = Arrays.stream(blocks).map(int[]::clone).toArray(int[][]::new);
+						final int tmp = blocksCopy[i + 1][k];
+						blocksCopy[i + 1][k] = block;
+						blocksCopy[i][k] = tmp;
+						neighbors.add(new Board(blocksCopy));
+					}
+					// left
+					if (k - 1 >= 0) {
+						int[][] blocksCopy = Arrays.stream(blocks).map(int[]::clone).toArray(int[][]::new);
+						final int tmp = blocksCopy[i][k - 1];
+						blocksCopy[i][k - 1] = block;
+						blocksCopy[i][k] = tmp;
+						neighbors.add(new Board(blocksCopy));
+					}
+					// right
+					if (k + 1 < n) {
+						int[][] blocksCopy = Arrays.stream(blocks).map(int[]::clone).toArray(int[][]::new);
+						final int tmp = blocksCopy[i][k + 1];
+						blocksCopy[i][k + 1] = block;
+						blocksCopy[i][k] = tmp;
+						neighbors.add(new Board(blocksCopy));
+					}
+				}
 			}
-
-			@Override
-			public Board next() {
-				return null;
-			}
-		};
+		}
+		return neighbors;
 	}
 
 	// string representation of this board (in the output format specified below)
@@ -146,6 +181,12 @@ public class Board {
 		System.out.println(initial.toString());
 		System.out.println("Hamming - " + initial.hamming());
 		System.out.println("Manhattan - " + initial.manhattan());
+
+		System.out.println("~~~~~~~~~~~Neighbors~~~~~~~~~~");
+		for (Board board : initial.neighbors()) {
+			System.out.println(board);
+		}
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 		// solve the puzzle
 		Solver solver = new Solver(initial);
