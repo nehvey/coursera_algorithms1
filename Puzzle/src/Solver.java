@@ -1,13 +1,16 @@
 import edu.princeton.cs.algs4.MinPQ;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 public class Solver {
 
 	private BoardComparator boardComparator = new BoardComparator();
 	private MinPQ<Board> pq = new MinPQ<>(boardComparator);
 	private int moves = 0;
+	private Set<Board> predecessors = new HashSet<>();
 
 	// find a solution to the initial board (using the A* algorithm)
 	public Solver(Board initial) {
@@ -15,17 +18,21 @@ public class Solver {
 		pq.insert(initial);
 		Board min;
 		while (!(min = pq.delMin()).isGoal()) {
+			if (predecessors.contains(min)) {
+				continue;
+			}
 //			System.out.println(min);
 			for (Board neighbor : min.neighbors()) {
 				pq.insert(neighbor);
 			}
+			predecessors.add(min);
 			moves++;
 		}
 	}
 
 	// is the initial board solvable?
 	public boolean isSolvable() {
-		return false;
+		return true;
 	}
 
 	// min number of moves to solve initial board; -1 if unsolvable
@@ -51,7 +58,7 @@ public class Solver {
 	private class BoardComparator implements Comparator<Board> {
 		@Override
 		public int compare(Board b1, Board b2) {
-			return b1.manhattan() - b2.manhattan();
+			return b1.hamming() - b2.hamming();
 		}
 	}
 

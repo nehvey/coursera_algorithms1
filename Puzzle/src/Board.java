@@ -1,11 +1,9 @@
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.Stack;
-import edu.princeton.cs.algs4.StdOut;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
 
 public class Board {
 
@@ -105,7 +103,6 @@ public class Board {
 			}
 		}
 		return true;
-
 	}
 
 	// all neighboring boards
@@ -153,6 +150,10 @@ public class Board {
 		return neighbors;
 	}
 
+	@Override public int hashCode() {
+		return Arrays.deepHashCode(blocks);
+	}
+
 	// string representation of this board (in the output format specified below)
 	public String toString() {
 		StringBuilder s = new StringBuilder();
@@ -163,6 +164,7 @@ public class Board {
 			}
 			s.append("\n");
 		}
+
 		return s.toString();
 	}
 
@@ -186,6 +188,10 @@ public class Board {
 		for (Board board : initial.neighbors()) {
 			System.out.println(board);
 		}
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println("~~~~~~~~~~~~~Equal?~~~~~~~~~~~");
+		Board duplicate = new Board(new int[][] { { 0, 1, 3 }, { 4, 2, 5 }, { 7, 8, 6 } });
+		System.out.println(initial.equals(duplicate));
 		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 		// solve the puzzle
