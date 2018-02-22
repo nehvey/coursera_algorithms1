@@ -1,75 +1,88 @@
-import edu.princeton.cs.algs4.MinPQ;
-
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.Deque;
+import java.util.LinkedList;
+
+import edu.princeton.cs.algs4.MinPQ;
 
 public class Solver {
 
-    private BoardComparator boardComparator = new BoardComparator();
-    private MinPQ<Board> pq = new MinPQ<>(boardComparator);
-    private int moves = 0;
-    private Set<Board> predecessors = new HashSet<>();
+	private BoardComparator boardComparator = new BoardComparator();
+	private MinPQ<SearchNode> pq = new MinPQ<>(boardComparator);
+	// private Set<Board> predecessors = new HashSet<>();
+	private Deque<Board> solutionBoards = new LinkedList<>();
 
-    // find a solution to the initial board (using the A* algorithm)
-    public Solver(Board initial) {
-        // insert the initial search node (the initial board, 0 moves, and a null predecessor search node) into a priority queue
-        pq.insert(initial);
-        Board min;
-        while (!pq.isEmpty() && !(min = pq.delMin()).isGoal()) {
-            if (predecessors.contains(min)) {
-                continue;
-            }
-//            System.out.println(min);
-            for (Board neighbor : min.neighbors()) {
-                if (!predecessors.contains(neighbor)) {
-                    pq.insert(neighbor);
-                }
-            }
+	// find a solution to the initial board (using the A* algorithm)
+	public Solver(Board initial) {
+		// insert the initial search node (the initial board, 0 moves, and a null predecessor search node) into a priority queue
+		pq.insert(new SearchNode(initial, null, 0));
+		SearchNode min = null;
+		while (!pq.isEmpty() && !(min = pq.delMin()).board.isGoal()) {
+			// if (predecessors.contains(min.board)) {
+			// continue;
+			// }
+			// System.out.println(min.board);
+			for (Board neighbor : min.board.neighbors()) {
+				final SearchNode searchNodePredecessor = new SearchNode(min.board, min.predecessor, min.moves);
+				if (searchNodePredecessor.board.equals(neighbor)) {
+					continue;
+				}
+				pq.insert(new SearchNode(neighbor, searchNodePredecessor, min.moves + 1));
+			}
 
-//            System.out.println(min.manhattan());
-//            System.out.println(min.hamming());
-            predecessors.add(min);
-            moves++;
-        }
-    }
+			// predecessors.add(min.board);
+		}
 
-    // is the initial board solvable?
-    public boolean isSolvable() {
-        return true;
-    }
+		assert min != null;
 
-    // min number of moves to solve initial board; -1 if unsolvable
-    public int moves() {
-        return moves;
-    }
+		SearchNode predecessor = min.predecessor;
+		do {
+			solutionBoards.addFirst(predecessor.board);
+		} while ((predecessor = predecessor.predecessor) != null);
+	}
 
-    // sequence of boards in a shortest solution; null if unsolvable
-    public Iterable<Board> solution() {
-        return () -> new Iterator<Board>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
+	// is the initial board solvable?
+	public boolean isSolvable() {
+		return true;
+	}
 
-            @Override
-            public Board next() {
-                return null;
-            }
-        };
-    }
+	// min number of moves to solve initial board; -1 if unsolvable
+	public int moves() {
+		if (isSolvable()) {
+			return solutionBoards.size();
+		}
+		return -1;
+	}
 
-    private class BoardComparator implements Comparator<Board> {
-        @Override
-        public int compare(Board b1, Board b2) {
-//            return b1.hamming() - b2.hamming();
-            return b1.manhattan() - b2.manhattan();
-        }
-    }
+	// sequence of boards in a shortest solution; null if unsolvable
+	public Iterable<Board> solution() {
+		if (isSolvable()) {
+			return solutionBoards;
+		}
+		return null;
+	}
 
-    // solve a slider puzzle (given below)
-    public static void main(String[] args) {
+	private class BoardComparator implements Comparator<SearchNode> {
+		@Override
+		public int compare(SearchNode b1, SearchNode b2) {
+			// return (b1.board.hamming() + b1.moves) - (b2.board.hamming() + b2.moves);
+			return (b1.board.manhattan() + b1.moves) - (b2.board.manhattan() + b2.moves);
+		}
+	}
 
-    }
+	private class SearchNode {
+		Board board;
+		SearchNode predecessor;
+		int moves;
+
+		SearchNode(Board board, SearchNode predecessor, int moves) {
+			this.board = board;
+			this.predecessor = predecessor;
+			this.moves = moves;
+		}
+	}
+
+	// solve a slider puzzle (given below)
+	public static void main(String[] args) {
+
+	}
 }
