@@ -6,9 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Board {
-
-    private int[] xCoordinates;
-    private int[] yCoordinates;
     private final int n;
     private final int[][] blocks;
     private int manhattanDistance = -1;
@@ -17,17 +14,10 @@ public class Board {
     // construct a board from an n-by-n array of blocks
     // (where blocks[i][j] = block in row i, column j)
     public Board(int[][] blocks) {
-        this.blocks = blocks;
         n = blocks.length;
-        xCoordinates = new int[n * n];
-        yCoordinates = new int[n * n];
-        int j = 0;
+        this.blocks = new int[n][n];
         for (int i = 0; i < n; i++) {
-            for (int k = 0; k < n; k++) {
-                xCoordinates[j] = i;
-                yCoordinates[j] = k;
-                j++;
-            }
+            System.arraycopy(blocks[i], 0, this.blocks[i], 0, n);
         }
     }
 
@@ -42,10 +32,10 @@ public class Board {
             return hammingDistance;
         }
         int result = 0;
-        int j = 0;
+        int j = 1;
         for (int i = 0; i < n; i++) {
             for (int k = 0; k < n; k++) {
-                if (j > 0 && blocks[i][k] != j) {
+                if (j != n * n && blocks[i][k] != j) {
                     result++;
                 }
                 j++;
@@ -61,12 +51,12 @@ public class Board {
             return manhattanDistance;
         }
         int result = 0;
-        int j = 0;
+        int j = 1;
         for (int i = 0; i < n; i++) {
             for (int k = 0; k < n; k++) {
                 final int blockNumber = blocks[i][k];
                 if (blockNumber > 0 && blockNumber != j) {
-                    result += Math.abs(i - xCoordinates[blockNumber]) + Math.abs(k - yCoordinates[blockNumber]);
+                    result += Math.abs(i - (blockNumber - 1) / n) + Math.abs(k - (blockNumber - 1) % n);
                 }
                 j++;
             }

@@ -6,3 +6,6 @@
 !/Puzzle
 /Puzzle/*
 !/Puzzle/src
+!/Kdtree
+/Kdtree/*
+!/Kdtree/src
