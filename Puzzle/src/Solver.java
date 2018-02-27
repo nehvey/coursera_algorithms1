@@ -6,8 +6,8 @@ import java.util.LinkedList;
 
 public class Solver {
 
-    private static final BoardComparator boardComparator = new BoardComparator();
-    private final MinPQ<SearchNode> pq = new MinPQ<>(boardComparator);
+    private static final BoardComparator BOARD_COMPARATOR = new BoardComparator();
+    private final MinPQ<SearchNode> pq = new MinPQ<>(BOARD_COMPARATOR);
     // private Set<Board> predecessors = new HashSet<>();
     private final Deque<Board> solutionBoards = new LinkedList<>();
 
