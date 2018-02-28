@@ -14,6 +14,9 @@ public class Board {
 	// construct a board from an n-by-n array of blocks
 	// (where blocks[i][j] = block in row i, column j)
 	public Board(int[][] blocks) {
+		if (blocks == null) {
+			throw new IllegalArgumentException();
+		}
 		n = blocks.length;
 		this.blocks = new int[n][n];
 		for (int i = 0; i < n; i++) {
