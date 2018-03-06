@@ -1,18 +1,18 @@
+import java.util.AbstractMap;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 
-import java.util.AbstractMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class KdTree {
 
-    private Set<Point2D> points = new HashSet<>();
+    private final Set<Point2D> points;
 
     // construct an empty set of points
     public KdTree() {
-
+        points = new TreeSet<>();
     }
 
     // is the set empty?
@@ -59,9 +59,16 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        return points.stream().map(point -> new AbstractMap.SimpleEntry<>(point, p.distanceTo(point))).min(
+        return points.stream().map(point -> new AbstractMap.SimpleEntry<>(point, p.distanceSquaredTo(point))).min(
                 (p1, p2) -> p1.getValue() > p2.getValue() ? 1 : -1).get().getKey();
     }
+
+	private static class Node {
+		private Point2D p;      // the point
+		private RectHV rect;    // the axis-aligned rectangle corresponding to this node
+		private Node lb;        // the left/bottom subtree
+		private Node rt;        // the right/top subtree
+	}
 
     // unit testing of the methods (optional)
     public static void main(String[] args) {
