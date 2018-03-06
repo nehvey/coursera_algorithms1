@@ -1,10 +1,11 @@
-import java.util.AbstractMap;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class KdTree {
 
@@ -51,7 +52,13 @@ public class KdTree {
         if (rect == null) {
             throw new IllegalArgumentException();
         }
-        return points.stream().filter(rect::contains).collect(Collectors.toSet());
+        final List<Point2D> pointsInside = new ArrayList<>();
+        points.forEach(p -> {
+            if (rect.contains(p)) {
+                pointsInside.add(p);
+            }
+        });
+        return pointsInside;
     }
 
     // a nearest neighbor in the set to point p; null if the set is empty
@@ -63,12 +70,12 @@ public class KdTree {
                 (p1, p2) -> p1.getValue() > p2.getValue() ? 1 : -1).get().getKey();
     }
 
-	private static class Node {
-		private Point2D p;      // the point
-		private RectHV rect;    // the axis-aligned rectangle corresponding to this node
-		private Node lb;        // the left/bottom subtree
-		private Node rt;        // the right/top subtree
-	}
+    private static class Node {
+        private Point2D p;      // the point
+        private RectHV rect;    // the axis-aligned rectangle corresponding to this node
+        private Node lb;        // the left/bottom subtree
+        private Node rt;        // the right/top subtree
+    }
 
     // unit testing of the methods (optional)
     public static void main(String[] args) {
