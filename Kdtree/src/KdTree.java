@@ -41,7 +41,7 @@ public class KdTree {
 
     // draw all points to standard draw
     public void draw() {
-        draw(root, 1);
+        draw(root, null, 1);
     }
 
     // all points that are inside the rectangle (or on the boundary)
@@ -116,17 +116,24 @@ public class KdTree {
         return contains(p, node.lb) || contains(p, node.rt);
     }
 
-    private void draw(Node node, int depth) {
+    private void draw(Node node, Node parent, int depth) {
         if (node == null) {
             return;
         }
 
         double xmin, xmax, ymin, ymax;
+        xmin = ymin = 0;
+        xmax = ymax = 0;
         if (depth % 2 != 0) { // x - RED
+            if (parent != null) {
+                if (node.p.y() > parent.p.y()) {
+                    ymin = parent.p.y();
+                } else {
+                    ymax = parent.p.y();
+                }
+            }
             xmin = node.p.x();
             xmax = node.p.x();
-            ymin = 0;
-            ymax = 1;
             StdDraw.setPenColor(StdDraw.RED);
         } else { // y - BLUE
             xmin = 0;
@@ -136,11 +143,16 @@ public class KdTree {
             StdDraw.setPenColor(StdDraw.BLUE);
         }
 
-        StdDraw.setPenRadius(0.001);
+        StdDraw.setPenRadius();
         StdDraw.line(xmin, ymin, xmax, ymax);
 
-        draw(node.lb, depth + 1);
-        draw(node.rt, depth + 1);
+        // draw point
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenRadius(0.01);
+        node.p.draw();
+
+        draw(node.lb, node, depth + 1);
+        draw(node.rt, node, depth + 1);
     }
 
     // unit testing of the methods (optional)
