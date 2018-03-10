@@ -2,6 +2,9 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class KdTree {
 
     private Node root;
@@ -28,7 +31,9 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        root = insert(root, p, 1);
+        if (!contains(p)) {
+            root = insert(root, p, 1);
+        }
     }
 
     // does the set contain point p?
@@ -36,7 +41,7 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        return contains(p, root);
+        return contains(p, root, 1);
     }
 
     // draw all points to standard draw
@@ -49,7 +54,7 @@ public class KdTree {
         if (rect == null) {
             throw new IllegalArgumentException();
         }
-        return null;
+        return range(rect, root, new ArrayList<>(), 1);
     }
 
     // a nearest neighbor in the set to point p; null if the set is empty
@@ -57,7 +62,7 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException();
         }
-        return null;
+        return nearest(p, root, root.p, 1);
     }
 
     private static class Node {
@@ -106,14 +111,38 @@ public class KdTree {
         return node;
     }
 
-    private boolean contains(Point2D p, Node node) {
+    private boolean contains(Point2D p, Node node, int depth) {
         if (node == null) {
             return false;
         }
         if (node.p.equals(p)) {
             return true;
         }
-        return contains(p, node.lb) || contains(p, node.rt);
+
+
+        int cmp = 0;
+
+        if (depth % 2 != 0) { // compare x for odd node
+            if (p.x() < node.p.x()) {
+                cmp = -1;
+            }
+            if (p.x() > node.p.x()) {
+                cmp = +1;
+            }
+        } else {// compare y for even node
+            if (p.y() < node.p.y()) {
+                cmp = -1;
+            }
+            if (p.y() > node.p.y()) {
+                cmp = +1;
+            }
+        }
+
+        return cmp < 0
+                // go left
+                ? contains(p, node.lb, depth + 1)
+                // go right
+                : contains(p, node.rt, depth + 1);
     }
 
     private void draw(Node node, int depth) {
@@ -204,6 +233,66 @@ public class KdTree {
                 ? getLimits(node.lb, p, depth + 1, xmin, ymin, xmax, ymax)
                 // go right
                 : getLimits(node.rt, p, depth + 1, xmin, ymin, xmax, ymax);
+    }
+
+    private Iterable<Point2D> range(RectHV rect, Node node, List<Point2D> points, int depth) {
+        if (node == null) {
+            return points;
+        }
+
+        if (rect.contains(node.p)) {
+            points.add(node.p);
+        }
+
+        if (depth % 2 != 0) { // compare x for odd node
+            if (rect.xmin() < node.p.x()) {
+                range(rect, node.lb, points, depth + 1);
+            }
+            if (rect.xmax() >= node.p.x()) {
+                range(rect, node.rt, points, depth + 1);
+            }
+        } else {// compare y for even node
+            if (rect.ymin() < node.p.y()) {
+                range(rect, node.lb, points, depth + 1);
+            }
+            if (rect.ymax() >= node.p.y()) {
+                range(rect, node.rt, points, depth + 1);
+            }
+        }
+        return points;
+    }
+
+    private Point2D nearest(Point2D p, Node node, Point2D nearest, int depth) {
+        if (node == null) {
+            return nearest;
+        }
+
+        if (p.distanceSquaredTo(node.p) < p.distanceSquaredTo(nearest)) {
+            nearest = node.p;
+        }
+        // critical optimisation doesn't work
+//        else if (!node.p.equals(nearest)) {
+//            return nearest;
+//        }
+
+        if (depth % 2 != 0) { // compare x for odd node
+            if (p.x() < node.p.x()) {
+                nearest = nearest(p, node.lb, nearest, depth + 1);
+                nearest = nearest(p, node.rt, nearest, depth + 1);
+            } else {
+                nearest = nearest(p, node.rt, nearest, depth + 1);
+                nearest = nearest(p, node.lb, nearest, depth + 1);
+            }
+        } else {// compare y for even node
+            if (p.y() < node.p.y()) {
+                nearest = nearest(p, node.lb, nearest, depth + 1);
+                nearest = nearest(p, node.rt, nearest, depth + 1);
+            } else {
+                nearest = nearest(p, node.rt, nearest, depth + 1);
+                nearest = nearest(p, node.lb, nearest, depth + 1);
+            }
+        }
+        return nearest;
     }
 
     // unit testing of the methods (optional)
