@@ -9,3 +9,6 @@
 !/Kdtree
 /Kdtree/*
 !/Kdtree/src
+!/Wordnet
+/Wordnet/*
+!/Wordnet/src

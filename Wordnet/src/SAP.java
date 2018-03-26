@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 import edu.princeton.cs.algs4.BreadthFirstDirectedPaths;
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.In;
@@ -13,8 +15,8 @@ public class SAP {
 
 	// length of shortest ancestral path between v and w; -1 if no such path
 	public int length(int v, int w) {
-		BreadthFirstDirectedPaths bfs = new BreadthFirstDirectedPaths(digraph, v);
-		return bfs.distTo(w);
+		LockStepBFS bfs = new LockStepBFS(digraph, v, w);
+		return 1;
 	}
 
 	// a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
@@ -37,6 +39,6 @@ public class SAP {
 		In in = new In(args[0]);
 		Digraph G = new Digraph(in);
 		SAP sap = new SAP(G);
-		System.out.println(sap.length(1, 2));
+		System.out.println(sap.length(7, 5));
 	}
 }
