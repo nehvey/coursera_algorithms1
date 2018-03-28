@@ -67,200 +67,114 @@ public class LockStepBFS {
 		bfs(G, sources1, sources2);
 	}
 
-    // BFS from single sources
-    private void bfs(Digraph G, int s1, int s2) {
-        Queue<Integer> q1 = new Queue<Integer>();
-        Queue<Integer> q2 = new Queue<Integer>();
-        marked1[s1] = true;
-        distTo1[s1] = 0;
-        marked2[s2] = true;
-        distTo2[s2] = 0;
-        q1.enqueue(s1);
-        q2.enqueue(s2);
+	// BFS from single sources
+	private void bfs(Digraph G, int s1, int s2) {
+		Queue<Integer> q1 = new Queue<Integer>();
+		Queue<Integer> q2 = new Queue<Integer>();
+		marked1[s1] = true;
+		distTo1[s1] = 0;
+		marked2[s2] = true;
+		distTo2[s2] = 0;
+		q1.enqueue(s1);
+		q2.enqueue(s2);
 
-        Object lock = new Object();
-        final boolean[] oneFinished = { false };
+		while (!q1.isEmpty() || !q2.isEmpty()) {
+			if (!q1.isEmpty()) {
+				int v1 = q1.dequeue();
+				for (int w : G.adj(v1)) {
+					if (!marked1[w]) {
+						// System.out.println(w + " by " + Thread.currentThread());
+						edgeTo1[w] = v1;
+						distTo1[w] = distTo1[v1] + 1;
+						marked1[w] = true;
+						q1.enqueue(w);
 
-        final Thread t1 = new Thread(() -> {
-            while (!q1.isEmpty()) {
-                int v = q1.dequeue();
-                for (int w : G.adj(v)) {
-                    if (!marked1[w]) {
-//                        System.out.println(w + " by " + Thread.currentThread());
-                        edgeTo1[w] = v;
-                        distTo1[w] = distTo1[v] + 1;
-                        marked1[w] = true;
-                        q1.enqueue(w);
-
-                        if (distTo2[w] != Integer.MAX_VALUE) {
-                            shortestPath = distTo1[w] + distTo2[w];
-                            ancestor = w;
-                            break;
-                        }
-                        synchronized (lock) {
-                            lock.notify();
-                            try {
-                                if (!oneFinished[0]) {
-                                    lock.wait();
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-            oneFinished[0] = true;
-            synchronized (lock) {
-                lock.notify();
-            }
-        });
-
-        final Thread t2 = new Thread(() -> {
-            while (!q2.isEmpty()) {
-                int v = q2.dequeue();
-                for (int w : G.adj(v)) {
-                    if (!marked2[w]) {
-//                        System.out.println(w + " by " + Thread.currentThread());
-                        edgeTo2[w] = v;
-                        distTo2[w] = distTo2[v] + 1;
-                        marked2[w] = true;
-                        q2.enqueue(w);
-
-                        if (distTo1[w] != Integer.MAX_VALUE) {
-                            shortestPath = distTo1[w] + distTo2[w];
-                            ancestor = w;
-                            break;
-                        }
-                        synchronized (lock) {
-                            lock.notify();
-                            try {
-                                if (!oneFinished[0]) {
-                                    lock.wait();
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
+						if (distTo2[w] != Integer.MAX_VALUE) {
+							shortestPath = distTo1[w] + distTo2[w];
+							ancestor = w;
+							break;
+						}
+					}
+				}
 			}
-			oneFinished[0] = true;
-			synchronized (lock) {
-				lock.notify();
+
+			if (!q2.isEmpty()) {
+				int v2 = q2.dequeue();
+				for (int w : G.adj(v2)) {
+					if (!marked2[w]) {
+						// System.out.println(w + " by " + Thread.currentThread());
+						edgeTo2[w] = v2;
+						distTo2[w] = distTo2[v2] + 1;
+						marked2[w] = true;
+						q2.enqueue(w);
+
+						if (distTo1[w] != Integer.MAX_VALUE) {
+							shortestPath = distTo1[w] + distTo2[w];
+							ancestor = w;
+							break;
+						}
+					}
+				}
 			}
-		});
-
-		t1.start();
-		t2.start();
-
-		try {
-			t1.join();
-			t2.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 
-    // BFS from multiple sources
-    private void bfs(Digraph G, Iterable<Integer> sources1, Iterable<Integer> sources2) {
-        Queue<Integer> q1 = new Queue<Integer>();
-        for (int s : sources1) {
-            marked1[s] = true;
-            distTo1[s] = 0;
-            q1.enqueue(s);
-        }
+	// BFS from multiple sources
+	private void bfs(Digraph G, Iterable<Integer> sources1, Iterable<Integer> sources2) {
+		Queue<Integer> q1 = new Queue<Integer>();
+		for (int s : sources1) {
+			marked1[s] = true;
+			distTo1[s] = 0;
+			q1.enqueue(s);
+		}
 
-        Queue<Integer> q2 = new Queue<Integer>();
-        for (int s : sources2) {
-            marked2[s] = true;
-            distTo2[s] = 0;
-            q2.enqueue(s);
-        }
-        
-        Object lock = new Object();
-        final boolean[] oneFinished = { false };
+		Queue<Integer> q2 = new Queue<Integer>();
+		for (int s : sources2) {
+			marked2[s] = true;
+			distTo2[s] = 0;
+			q2.enqueue(s);
+		}
 
-        final Thread t1 = new Thread(() -> {
-            while (!q1.isEmpty()) {
-                int v = q1.dequeue();
-                for (int w : G.adj(v)) {
-                    if (!marked1[w]) {
-//                        System.out.println(w + " by " + Thread.currentThread());
-                        edgeTo1[w] = v;
-                        distTo1[w] = distTo1[v] + 1;
-                        marked1[w] = true;
-                        q1.enqueue(w);
+		while (!q1.isEmpty() || !q2.isEmpty()) {
+			if (!q1.isEmpty()) {
+				int v1 = q1.dequeue();
+				for (int w : G.adj(v1)) {
+					if (!marked1[w]) {
+						// System.out.println(w + " by " + Thread.currentThread());
+						edgeTo1[w] = v1;
+						distTo1[w] = distTo1[v1] + 1;
+						marked1[w] = true;
+						q1.enqueue(w);
 
-                        if (distTo2[w] != Integer.MAX_VALUE) {
-                            shortestPath = distTo1[w] + distTo2[w];
-                            ancestor = w;
-                            break;
-                        }
-                        synchronized (lock) {
-                            lock.notify();
-                            try {
-                                if (!oneFinished[0]) {
-                                    lock.wait();
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-            oneFinished[0] = true;
-            synchronized (lock) {
-                lock.notify();
-            }
-        });
+						if (distTo2[w] != Integer.MAX_VALUE) {
+							shortestPath = distTo1[w] + distTo2[w];
+							ancestor = w;
+							break;
+						}
+					}
+				}
+			}
 
-        final Thread t2 = new Thread(() -> {
-            while (!q2.isEmpty()) {
-                int v = q2.dequeue();
-                for (int w : G.adj(v)) {
-                    if (!marked2[w]) {
-//                        System.out.println(w + " by " + Thread.currentThread());
-                        edgeTo2[w] = v;
-                        distTo2[w] = distTo2[v] + 1;
-                        marked2[w] = true;
-                        q2.enqueue(w);
+			if (!q2.isEmpty()) {
+				int v2 = q2.dequeue();
+				for (int w : G.adj(v2)) {
+					if (!marked2[w]) {
+						// System.out.println(w + " by " + Thread.currentThread());
+						edgeTo2[w] = v2;
+						distTo2[w] = distTo2[v2] + 1;
+						marked2[w] = true;
+						q2.enqueue(w);
 
-                        if (distTo1[w] != Integer.MAX_VALUE) {
-                            shortestPath = distTo1[w] + distTo2[w];
-                            ancestor = w;
-                            break;
-                        }
-                        synchronized (lock) {
-                            lock.notify();
-                            try {
-                                if (!oneFinished[0]) {
-                                    lock.wait();
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-            oneFinished[0] = true;
-            synchronized (lock) {
-                lock.notify();
-            }
-        });
-
-        t1.start();
-        t2.start();
-
-        try {
-            t1.join();
-            t2.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+						if (distTo1[w] != Integer.MAX_VALUE) {
+							shortestPath = distTo1[w] + distTo2[w];
+							ancestor = w;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 
     /**
      * Is there a directed path from the source {@code s} (or sources) to vertex {@code v}?
