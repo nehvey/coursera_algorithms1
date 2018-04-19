@@ -12,3 +12,7 @@
 !/Wordnet
 /Wordnet/*
 !/Wordnet/src
+!/SeamCarver
+/SeamCarver/*
+!/SeamCarver/src
+
