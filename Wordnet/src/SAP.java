@@ -45,7 +45,8 @@ public class SAP {
 		In in = new In(args[0]);
 		Digraph G = new Digraph(in);
 		SAP sap = new SAP(G);
-		System.out.println(sap.length(7, 5));
-		System.out.println(sap.length(Arrays.asList(7), Arrays.asList(5)));
+		System.out.println(sap.length(8, 13));
+		System.out.println(sap.ancestor(10, 7));
+		System.out.println(sap.length(Arrays.asList(8), Arrays.asList(13)));
 	}
 }

@@ -80,7 +80,12 @@ public class LockStepBFS {
 
 		while (!q1.isEmpty() || !q2.isEmpty()) {
 			if (!q1.isEmpty()) {
-				int v1 = q1.dequeue();
+                int v1 = q1.dequeue();
+                if (distTo2[v1] != Integer.MAX_VALUE) {
+                    if (isShortest(v1)) {
+                        return;
+                    }
+				}
 				for (int w : G.adj(v1)) {
 					if (!marked1[w]) {
 						// System.out.println(w + " by " + Thread.currentThread());
@@ -89,17 +94,22 @@ public class LockStepBFS {
 						marked1[w] = true;
 						q1.enqueue(w);
 
-						if (distTo2[w] != Integer.MAX_VALUE) {
-							shortestPath = distTo1[w] + distTo2[w];
-							ancestor = w;
-							break;
-						}
-					}
+                        if (distTo2[w] != Integer.MAX_VALUE) {
+                            if (isShortest(w)) {
+                                return;
+                            }
+                        }
+                    }
 				}
 			}
 
 			if (!q2.isEmpty()) {
 				int v2 = q2.dequeue();
+				if (distTo1[v2] != Integer.MAX_VALUE){
+                    if (isShortest(v2)) {
+                        return;
+                    }
+				}
 				for (int w : G.adj(v2)) {
 					if (!marked2[w]) {
 						// System.out.println(w + " by " + Thread.currentThread());
@@ -109,9 +119,9 @@ public class LockStepBFS {
 						q2.enqueue(w);
 
 						if (distTo1[w] != Integer.MAX_VALUE) {
-							shortestPath = distTo1[w] + distTo2[w];
-							ancestor = w;
-							break;
+                            if (isShortest(w)) {
+                                return;
+                            }
 						}
 					}
 				}
@@ -138,6 +148,11 @@ public class LockStepBFS {
 		while (!q1.isEmpty() || !q2.isEmpty()) {
 			if (!q1.isEmpty()) {
 				int v1 = q1.dequeue();
+				if (distTo2[v1] != Integer.MAX_VALUE){
+                    if (isShortest(v1)) {
+                        return;
+                    }
+				}
 				for (int w : G.adj(v1)) {
 					if (!marked1[w]) {
 						// System.out.println(w + " by " + Thread.currentThread());
@@ -147,9 +162,9 @@ public class LockStepBFS {
 						q1.enqueue(w);
 
 						if (distTo2[w] != Integer.MAX_VALUE) {
-							shortestPath = distTo1[w] + distTo2[w];
-							ancestor = w;
-							break;
+                            if (isShortest(w)) {
+                                return;
+                            }
 						}
 					}
 				}
@@ -157,6 +172,11 @@ public class LockStepBFS {
 
 			if (!q2.isEmpty()) {
 				int v2 = q2.dequeue();
+				if (distTo1[v2] != Integer.MAX_VALUE){
+                    if (isShortest(v2)) {
+                        return;
+                    }
+				}
 				for (int w : G.adj(v2)) {
 					if (!marked2[w]) {
 						// System.out.println(w + " by " + Thread.currentThread());
@@ -166,9 +186,9 @@ public class LockStepBFS {
 						q2.enqueue(w);
 
 						if (distTo1[w] != Integer.MAX_VALUE) {
-							shortestPath = distTo1[w] + distTo2[w];
-							ancestor = w;
-							break;
+                            if (isShortest(w)) {
+                                return;
+                            }
 						}
 					}
 				}
@@ -244,6 +264,18 @@ public class LockStepBFS {
                 throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
             }
         }
+    }
+
+    private boolean isShortest(int vertex) {
+        if (distTo1[vertex] + distTo2[vertex] <= shortestPath) {
+            shortestPath = distTo1[vertex] + distTo2[vertex];
+            ancestor = vertex;
+        } else {
+            return false;
+            // critical performance optimisation - doesn't correctly work in some cases
+//            return true;
+        }
+        return false;
     }
 
 
