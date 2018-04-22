@@ -1,11 +1,12 @@
 import edu.princeton.cs.algs4.Picture;
 import edu.princeton.cs.algs4.Stack;
 
+import java.awt.Color;
 import java.util.Arrays;
 
 public class SeamCarver {
 
-    private final Picture picture;
+    private Picture picture;
     private double[][] energyMatrix;
     private int width;
     private int height;
@@ -18,7 +19,10 @@ public class SeamCarver {
         this.picture = new Picture(picture);
         width = picture.width();
         height = picture.height();
+        initEnergyMatrix();
+    }
 
+    private void initEnergyMatrix() {
         energyMatrix = new double[width][height];
 
         // init all with -1
@@ -142,7 +146,16 @@ public class SeamCarver {
         if (seam == null) {
             throw new IllegalArgumentException();
         }
+        picture = transposePicture(picture);
+        width = picture.width();
+        height = picture.height();
 
+        removeVerticalSeam(seam);
+
+        picture = transposePicture(picture);
+        width = picture.width();
+        height = picture.height();
+        initEnergyMatrix();
     }
 
     // remove vertical seam from current picture
@@ -150,6 +163,21 @@ public class SeamCarver {
         if (seam == null) {
             throw new IllegalArgumentException();
         }
+
+        Picture newPicture = new Picture(width - 1, height);
+        for (int row = 0; row < height; row++) {
+            int newCol = 0;
+            for (int col = 0; col < width; col++) {
+                if (seam[row] != col) {
+                    Color color = picture.get(col, row);
+                    newPicture.set(newCol, row, color);
+                    newCol++;
+                }
+            }
+        }
+        picture = newPicture;
+        width--;
+        initEnergyMatrix();
     }
 
     private void relax(CoordinateEdge e, double[][] distTo, CoordinateEdge[][] edgeTo) {
@@ -215,6 +243,18 @@ public class SeamCarver {
             }
         }
         return res;
+    }
+
+    private Picture transposePicture(Picture a) {
+        int n = a.width();
+        int m = a.height();
+        Picture newPicture = new Picture(m, n);
+        for (int x = 0; x < n; x++) {
+            for (int y = 0; y < m; y++) {
+                newPicture.set(y, x, a.get(x, y));
+            }
+        }
+        return newPicture;
     }
 
     public static void main(String[] args) {
