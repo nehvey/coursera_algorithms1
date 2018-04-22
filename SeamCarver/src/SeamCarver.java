@@ -1,12 +1,12 @@
-import edu.princeton.cs.algs4.DirectedEdge;
 import edu.princeton.cs.algs4.Picture;
+import edu.princeton.cs.algs4.Stack;
 
 import java.util.Arrays;
 
 public class SeamCarver {
 
     private final Picture picture;
-    private final double[][] energyMatrix;
+    private double[][] energyMatrix;
     private int width;
     private int height;
 
@@ -59,67 +59,82 @@ public class SeamCarver {
 
     // sequence of indices for horizontal seam
     public int[] findHorizontalSeam() {
-        return null;
+        double[][] tmp = energyMatrix;
+        double[][] transposed = transpose(energyMatrix);
+        energyMatrix = transposed;
+        width = transposed.length;
+        height = transposed[0].length;
+        int[] verticalSeam = findVerticalSeam();
+        energyMatrix = tmp;
+        width = tmp.length;
+        height = tmp[0].length;
+        return verticalSeam;
     }
 
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        double[][] distTo;
-        DirectedEdge[][] edgeTo;
-        if (width > height) {
-            distTo = new double[width][height * height];
-            edgeTo = new DirectedEdge[width][height * height];
-        } else {
-            distTo = new double[width][width * height];
-            edgeTo = new DirectedEdge[width][width * height];
-        }
+        double[][] distTo = new double[width][height];
+        CoordinateEdge[][] edgeTo = new CoordinateEdge[width][height];
 
-        for (int i = 0; i < width; i++) {
-            for (int v = 1; v < distTo[i].length; v++) {
-                distTo[i][v] = Double.POSITIVE_INFINITY;
+        for (int x = 0; x < width; x++) {
+            for (int y = 1; y < height; y++) {
+                distTo[x][y] = Double.POSITIVE_INFINITY;
             }
-            distTo[i][0] = 0.0;
+            distTo[x][0] = 0.0;
         }
 
-        for (int seam = 0; seam < width; seam++) {
+        int n = 0;
+        for (int y = 0; y < height - 1; y++) {
+            for (int x = 0; x < width; x++) {
+                int x1 = x - 1;
+                int x2 = x;
+                int x3 = x + 1;
 
-            System.out.println("seam" + seam);
-            int n = 0;
-            for (int y = 0; y < height; y++) {
-                int from = (seam - y) >= 0 ? seam - y : 0;
-                int to = (seam + y) < width ? seam + y : width - 1;
-                for (int x = from; x <= to; x++) {
-                    System.out.println(x + "," + y);
-
-                    int x1 = x - 1;
-                    int x2 = x;
-                    int x3 = x + 1;
-
-                    //1
-                    if (x1 >= 0) {
-                        System.out.println("x1=" + x1 + "," + (y + 1));
-//                        relax(new DirectedEdge(n, n, energy()));
-                        x = x;
-                    }
-
-
-                    //2
-                    System.out.println("x2=" + x2 + "," + (y + 1));
-                    x = x;
-
-                    //3
-                    if (x3 < width) {
-                        System.out.println("x3=" + x3 + "," + (y + 1));
-                        x = x;
-                    }
-                    n++;
+                //1
+                if (x1 >= 0) {
+//                    System.out.println("x1=" + x1 + "," + (y + 1));
+                    relax(new CoordinateEdge(
+                                    new CoordinateVertex(x, y),
+                                    new CoordinateVertex(x1, y + 1),
+                                    energy(x1, y + 1)),
+                            distTo,
+                            edgeTo);
                 }
 
+
+                //2
+//                System.out.println("x2=" + x2 + "," + (y + 1));
+                relax(new CoordinateEdge(
+                                new CoordinateVertex(x, y),
+                                new CoordinateVertex(x2, y + 1),
+                                energy(x2, y + 1)),
+                        distTo,
+                        edgeTo);
+
+                //3
+                if (x3 < width) {
+//                    System.out.println("x3=" + x3 + "," + (y + 1));
+                    relax(new CoordinateEdge(
+                                    new CoordinateVertex(x, y),
+                                    new CoordinateVertex(x3, y + 1),
+                                    energy(x3, y + 1)),
+                            distTo,
+                            edgeTo);
+                }
+                n++;
             }
-            System.out.println("n=" + n);
         }
 
-        return null;
+        double minWeight = Double.POSITIVE_INFINITY;
+        int minX = 0;
+        for (int x = 0; x < width; x++) {
+            if (distTo[x][height - 1] < minWeight) {
+                minWeight = distTo[x][height - 1];
+                minX = x;
+            }
+        }
+
+        return pathTo(minX, height - 1, edgeTo);
     }
 
     // remove horizontal seam from current picture
@@ -137,12 +152,31 @@ public class SeamCarver {
         }
     }
 
-    private void relax(DirectedEdge e, double[] distTo, DirectedEdge[] edgeTo) {
-        int v = e.from(), w = e.to();
-        if (distTo[w] > distTo[v] + e.weight()) {
-            distTo[w] = distTo[v] + e.weight();
-            edgeTo[w] = e;
+    private void relax(CoordinateEdge e, double[][] distTo, CoordinateEdge[][] edgeTo) {
+        CoordinateVertex v = e.from(), w = e.to();
+        if (distTo[w.getX()][w.getY()] > distTo[v.getX()][v.getY()] + e.weight()) {
+            distTo[w.getX()][w.getY()] = distTo[v.getX()][v.getY()] + e.weight();
+            edgeTo[w.getX()][w.getY()] = e;
         }
+    }
+
+    private int[] pathTo(int x, int y, CoordinateEdge[][] edgeTo) {
+        Stack<Integer> s = new Stack<>();
+        for (CoordinateEdge e = edgeTo[x][y]; e != null; e = edgeTo[e.from().getX()][e.from().getY()]) {
+            s.push(e.from().getX());
+        }
+
+        int yPos = 0;
+        int[] path = new int[s.size() + 1];
+        for (Integer xPos : s) {
+            path[yPos] = xPos;
+            yPos++;
+        }
+
+        // including destination vertex itself
+        path[s.size()] = x;
+
+        return path;
     }
 
     private double deltaX(int x, int y) {
@@ -169,6 +203,18 @@ public class SeamCarver {
         final int b2 = (rgb2) & 0xFF;
 
         return Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2);
+    }
+
+    private double[][] transpose(double[][] a) {
+        int n = a.length;
+        int m = a[0].length;
+        double[][] res = new double[m][n];
+        for (int x = 0; x < n; x++) {
+            for (int y = 0; y < m; y++) {
+                res[y][x] = a[x][y];
+            }
+        }
+        return res;
     }
 
     public static void main(String[] args) {
